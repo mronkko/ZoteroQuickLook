@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://zoteroquicklook/skin/overlay.css" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://zoteroquicklook/locale/zoteroquicklook.dtd">
+
+<overlay id="zoteroquicklook-overlay"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+	
+	<menupopup id="zotero-itemmenu">
+		<menuitem id="zoteroquicklook" label="&zoteroquicklook.menuitem;"
+			oncommand="Zotero.ZoteroQuickLook.openQuickLook(ZoteroPane.getSelectedItems());"/>
+	</menupopup>
+	
+
+	<!-- Include the main extension logic -->
+	<script src="chrome://zotero/content/include.js"/>
+	<script src="chrome://zoteroquicklook/content/include.js"/>
+</overlay>

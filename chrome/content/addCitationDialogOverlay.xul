@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://zoteroquicklook/skin/overlay.css" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://zoteroquicklook/locale/zoteroquicklook.dtd">
+
+<overlay id="zoteroquicklook-overlay"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+	<!-- Include the main extension logic -->
+	<script src="chrome://zoteroquicklook/content/includeDialog.js"/>
+
+</overlay>
