@@ -5,3 +5,4 @@ skin	zoteroquicklook	default		chrome/skin/default/
 overlay	chrome://browser/content/browser.xul	chrome://zoteroquicklook/content/overlay.xul
 overlay	chrome://zotero/content/zoteroPane.xul	chrome://zoteroquicklook/content/overlay.xul
 overlay	chrome://zotero/content/integration/addCitationDialog.xul	chrome://zoteroquicklook/content/addCitationDialogOverlay.xul
+overlay	chrome://zotero/content/integration/quickFormat.xul	chrome://zoteroquicklook/content/quickFormatOverlay.xul

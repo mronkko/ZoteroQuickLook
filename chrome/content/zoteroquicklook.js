@@ -18,60 +18,114 @@ Zotero.ZoteroQuickLook = {
 	
 		if(this.prefs==null){
 
-			Zotero.debug("ZoteroQuickLook starts init",3);
+			Zotero.debug("ZoterQuickLook: starts init",3);
 
 			//set up preferences
 			this.prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch("extensions.zoteroquicklook.");
-
-			this.customviewcommand=this.prefs.getCharPref("customviewcommand");
 			
+			//Trim the preference to avoid problems of extra spaces
+			this.customviewcommand=this.prefs.getCharPref("customviewcommand").replace(/^\s+|\s+$/g, '');
+			
+			//Check that the custom view command exists and show an alert if it does not.
+			
+			if(this.customviewcommand!=""){
+				file = Components.classes["@mozilla.org/file/local;1"]
+		                .createInstance(Components.interfaces.nsILocalFile);
+	            file.initWithPath(this.customviewcommand);
+				
+				if(file.exists() === false){
+					alert("You have specified a non-existing file ("+this.customviewcommand+") as a custom view command for Zotero Quick Look. The default view command will be used for this session.");
+					this.customviewcommand="";
+				}
+			}
 			//Location of the perl script that is used on linux and mac
 			var scriptLocation;
 		
 			//Get the path of the  embedded shell script if no custom view command is defined
-			 if((Zotero.isMac || Zotero.isLinux) && this.customviewcommand==""){
 		
-				var MY_ID = "zoteroquicklook@gmail.com";  
-				
-				if(Components.interfaces.nsIExtensionManager){
-					Zotero.debug("This is not Firefox 4",3);
-					//Earlier versions
-	
-					var em = Components.classes["@mozilla.org/extensions/manager;1"].getService(Components.interfaces.nsIExtensionManager);  
-	
-					scriptLocation=em.getInstallLocation(MY_ID).getItemFile(MY_ID, "chrome/content/zoteroquicklook.pl").path;
-
-					Zotero.ZoteroQuickLook.initExecutable(scriptLocation);
-				}
-				else{
-					//Firefox 4
-					Zotero.debug("ZoteroQuickLook detected Firefox 4",3);
-	
-					Components.utils.import("resource://gre/modules/AddonManager.jsm");  
-	
-					AddonManager.getAddonByID(MY_ID, function(addon) {
-	
-					resourceURI=addon.getResourceURI("chrome/content/zoteroquicklook.pl");
-	
-	
-					scriptLocation = resourceURI.QueryInterface(Components.interfaces.nsIFileURL).file.path;
-					
-					Zotero.ZoteroQuickLook.initExecutable(scriptLocation);
-	
-					});
-
-				}
-				
-			}
-			else Zotero.ZoteroQuickLook.initExecutable("");
+			var MY_ID = "zoteroquicklook@gmail.com";  
 			
+			if(Components.interfaces.nsIExtensionManager){
+				Zotero.debug("This is not Firefox 4 or later",3);
+				//Earlier versions
+
+				var em = Components.classes["@mozilla.org/extensions/manager;1"].getService(Components.interfaces.nsIExtensionManager);  
+
+				scriptLocation=em.getInstallLocation(MY_ID).getItemFile(MY_ID, "chrome/content").path;
+
+				Zotero.ZoteroQuickLook.initScripts(scriptLocation);
+			}
+			else{
+				//Firefox 4
+				Zotero.debug("ZoterQuickLook: detected Firefox 4 or later",3);
+
+				Components.utils.import("resource://gre/modules/AddonManager.jsm");  
+
+				AddonManager.getAddonByID(MY_ID, function(addon) {
+
+				resourceURI=addon.getResourceURI("chrome/content");
+
+
+				scriptLocation = resourceURI.QueryInterface(Components.interfaces.nsIFileURL).file.path;
+				
+				Zotero.ZoteroQuickLook.initScripts(scriptLocation);
+
+				});
+
+			}
+				
+
 			Zotero.ZoteroQuickLook.initIntegration();
 			
-			Zotero.debug("ZoteroQuickLook finished init",3);
+			Zotero.debug("ZoterQuickLook: finished init",3);
 
 		}
 	},
 	
+	//Initializes external scripts.
+	
+	initScripts: function(scriptDir) {
+	
+		 if((Zotero.isMac || Zotero.isLinux) && this.customviewcommand==""){
+
+			Zotero.ZoteroQuickLook.initExecutable(scriptDir+"/zoteroquicklook.pl")
+		
+		}
+		// Check if the word processor integration for Zotero is installed and install the quicklook word processor script
+		
+		if(Zotero.isMac){
+			
+			var zoteroScriptsPath = Components.classes["@mozilla.org/file/local;1"]
+                .createInstance(Components.interfaces.nsILocalFile);
+		
+			zoteroScriptsPath.initWithPath("~/Documents/Microsoft User Data/Word Script Menu Items/Zotero");
+
+			if(zoteroScriptsPath.exists()){
+				Zotero.debug("ZoteroQuickLook: Found Zotero word processor integration scripts");
+	
+				var zoteroQL = Components.classes["@mozilla.org/file/local;1"]
+                .createInstance(Components.interfaces.nsILocalFile);
+		
+				zoteroQL.initWithPath("~/Documents/Microsoft User Data/Word Script Menu Items/Zotero/ZoteroQuickLook\\coq.scpt");
+				if(zoteroQL.exists() === false){
+					Zotero.debug("ZoteroQuickLook: Did not find ZoteroQuickLook integration script, attempting to install.");
+					
+					file = Components.classes["@mozilla.org/file/local;1"]
+		                .createInstance(Components.interfaces.nsILocalFile);
+		            file.initWithPath(scriptDir+"/ZoteroQuickLook\\coq.scpt");
+		            
+		            file.copyTo(zoteroScriptsPath,"ZoteroQuickLook\\coq.scpt");
+				}
+				else{
+					Zotero.debug("ZoteroQuickLook: Found ZoteroQuickLook integration script.");
+				}
+			}
+			else{
+				Zotero.debug("ZoteroQuickLook: Did not find Zotero word processor integration scripts");
+			}
+		}
+	},
+
 	initIntegration: function(){
 	
 		Zotero.Integration.Document.prototype.quickLook = function() {
@@ -160,26 +214,26 @@ Zotero.ZoteroQuickLook = {
 				}
 				var citation = {"citationItems":citationItems, properties:{}};
 			}
-			Zotero.debug(citation.citationItems[0],3);
+
 // End of copy-paste
 
 // Another copy paste
 			var items=new Array();
-			var zoteroItem;
+
 			for each(var citationItem in citation.citationItems) {
-				var item = false;
-				Zotero.debug(citationItem,3);
-				Zotero.debug(citationItem.id,3);
-				if(!citationItem.id) {
-					zoteroItem = false;
-					if(citationItem.uri) {
-						[zoteroItem, ] = this._session.uriMap.getZoteroItemForURIs(citationItem.uri);
-					} else if(citationItem.key) {
-						zoteroItem = Zotero.Items.getByKey(citationItem.key);
-					}
-					if(zoteroItem) citationItem.id = zoteroItem.id;
+				var zoteroItem = false;
+				if(citationItem.uri) {
+					Zotero.debug("ZoteroQuickLook: citation item has URI "+ citationItem.uri );
+					[zoteroItem, ] = this._session.uriMap.getZoteroItemForURIs(citationItem.uri);
+				} else if(citationItem.key) {
+					Zotero.debug("ZoteroQuickLook: citation item has key "+ citationItem.key );
+					zoteroItem = Zotero.Items.getByKey(citationItem.key);
 				}
-				items.push(Zotero.Items.get(citationItem.id));
+				else{
+					Zotero.debug("ZoteroQuickLook: citation does not have a key or URI" );
+				}
+				
+				if(zoteroItem) items.push(zoteroItem);
 			}
 
 // End of copy paste. At this point the citationItem.id s should match zotero item ids. 
@@ -269,7 +323,7 @@ Zotero.ZoteroQuickLook = {
 	},
 	
 	closeQuickLook: function(){
-		Zotero.debug("ZoteroQuickLook is killing quicklook viewer.");
+		Zotero.debug("ZoterQuickLook: is killing quicklook viewer.");
 		Zotero.ZoteroQuickLook.proc.kill();
 		Zotero.ZoteroQuickLook.proc=null;
 	},
@@ -358,12 +412,14 @@ Checks the attachment file or writes a content of a note to a file and then push
 	
 	openQuickLook: function(items) {
 	
-		Zotero.debug("ZoteroQuickLook opening viewer",3);
+		Zotero.debug("ZoterQuickLook: opening viewer",3);
 
 		var args=this.viewerBaseArguments.slice();
 		
 		// A boolean indicating if we have notes this far.
 		var notesFound=false;
+
+		var filesFound=false;
 		
 		//Combine all filenames into an array
 
@@ -375,7 +431,9 @@ Checks the attachment file or writes a content of a note to a file and then push
 					notesFound=true;
 				}
 				this.pushItemToArgs(args,items[item]);
+				filesFound=true;
 			}
+
 			//See if it has children and add them. Best attachment comes first.
 			//Notes come after attachments
 
@@ -396,6 +454,7 @@ Checks the attachment file or writes a content of a note to a file and then push
 				for (childID in children){
 					var child = Zotero.Items.get(children[childID]);
 					this.pushItemToArgs(args,child);
+					filesFound=true;
 				}
 				
 			}
@@ -404,8 +463,8 @@ Checks the attachment file or writes a content of a note to a file and then push
 		
 		///If no files are specified, exit. Custom view commmand does not have base arguments but other view commands have one base argument.
 		
-		if (args.length==0 || (Zotero.ZoteroQuickLook.customviewcommand==""&&args.length==1)) {
-			Zotero.debug("ZoteroQuickLook thinks that no files are selected",3);
+		if (! filesFound ) {
+			Zotero.debug("ZoterQuickLook: thinks that no files are selected",3);
 			return false;
 		}
 
@@ -416,7 +475,7 @@ Checks the attachment file or writes a content of a note to a file and then push
 		}
 		
 		//Write to debug what is called
-		Zotero.debug("ZoteroQuickLook calling a shell command: " +this.viewerExecutable.path +argsString,3);
+		Zotero.debug("ZoterQuickLook: calling a shell command: " +this.viewerExecutable.path +argsString,3);
 
 		Zotero.ZoteroQuickLook.proc = Components.classes["@mozilla.org/process/util;1"].
 		createInstance(Components.interfaces.nsIProcess);
@@ -443,7 +502,7 @@ Checks the attachment file or writes a content of a note to a file and then push
 		var key = String.fromCharCode(event.which);
 		
 		
-		if ((key == ' ' && !(event.ctrlKey || event.altKey || event.metaKey)) || (key == 'Y' && event.metaKey && !(event.ctrlKey || event.altKey))) {
+		if ((key == ' ' && !(event.ctrlKey || event.altKey || event.metaKey)) || (key == 'y' && event.metaKey && !(event.ctrlKey || event.altKey))) {
 			
 			//Toggle the quicklook
 			if(Zotero.ZoteroQuickLook.isActive()){ 
@@ -463,12 +522,12 @@ Checks the attachment file or writes a content of a note to a file and then push
 		}
 		// 38 is arrow up and 40 is arrow down. If quick look is active, we will close it and open it again with the new selection.
 		else if((event.keyCode==38 || event.keyCode==40)&& !(event.ctrlKey || event.altKey || event.metaKey) && (Zotero.ZoteroQuickLook.isActive() || Zotero.ZoteroQuickLook.isBrowseMode)) {
-			Zotero.debug("ZoteroQuickLook is browsing");
+			Zotero.debug("ZoterQuickLook: is browsing");
 			if (! Zotero.ZoteroQuickLook.isBrowseMode) Zotero.ZoteroQuickLook.closeQuickLook();
 			success=Zotero.ZoteroQuickLook.openQuickLook(items);
 			// If the items were not found, the viewer stays closed. However, if we are browsing through a list of items, we want to reopen the viewer when we hit the next item that has an attachment.
 			Zotero.ZoteroQuickLook.isBrowseMode = ! success;
-			Zotero.debug("ZoteroQuickLook has browse mode set to " + Zotero.ZoteroQuickLook.isBrowseMode,3);
+			Zotero.debug("ZoterQuickLook: has browse mode set to " + Zotero.ZoteroQuickLook.isBrowseMode,3);
 			
 		}
 		return;
