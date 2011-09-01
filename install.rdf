@@ -32,13 +32,13 @@
 			</Description>
 		</em:targetApplication>
 		
-		<!-- Support for Zotero Stand Alone -->
+		<!-- Support for Zotero Standalone -->
 		
 		<em:targetApplication>
 			<Description>
 				<em:id>zotero@chnm.gmu.edu</em:id>
 				<em:minVersion>3.0b1</em:minVersion>
-				<em:maxVersion>3.0.*</em:maxVersion>
+				<em:maxVersion>3.*</em:maxVersion>
 			</Description>
 		</em:targetApplication>
 	</Description>
