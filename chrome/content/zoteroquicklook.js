@@ -29,11 +29,11 @@ Zotero.ZoteroQuickLook = {
 			//Check that the custom view command exists and show an alert if it does not.
 			
 			if(this.customviewcommand!=""){
-				file = Components.classes["@mozilla.org/file/local;1"]
+				this.viewerExecutable = Components.classes["@mozilla.org/file/local;1"]
 		                .createInstance(Components.interfaces.nsILocalFile);
-	            file.initWithPath(this.customviewcommand);
-				
-				if(file.exists() === false){
+	            		this.viewerExecutable.initWithPath(this.customviewcommand);
+                    		this.viewerBaseArguments=[''];
+				if(this.viewerExecutable.exists() === false){
 					alert("You have specified a non-existing file ("+this.customviewcommand+") as a custom view command for Zotero Quick Look. The default view command will be used for this session.");
 					this.customviewcommand="";
 				}
