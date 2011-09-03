@@ -30,18 +30,20 @@ Zotero.ZoteroQuickLook = {
 			
 			if(this.customviewcommand!=""){
 				this.viewerExecutable = Components.classes["@mozilla.org/file/local;1"]
-		                .createInstance(Components.interfaces.nsILocalFile);
-	            		this.viewerExecutable.initWithPath(this.customviewcommand);
-                    		this.viewerBaseArguments=[''];
+					.createInstance(Components.interfaces.nsILocalFile);
+	            this.viewerExecutable.initWithPath(this.customviewcommand);
+                this.viewerBaseArguments=[''];
+				
 				if(this.viewerExecutable.exists() === false){
-					alert("You have specified a non-existing file ("+this.customviewcommand+") as a custom view command for Zotero Quick Look. The default view command will be used for this session.");
+					alert("You have specified a non-existing file ("+this.customviewcommand
+					+") as a custom view command for Zotero Quick Look. The default view command will be used for this session.");
 					this.customviewcommand="";
 				}
 			}
 			//Location of the perl script that is used on linux and mac
 			var scriptLocation;
 		
-			//Get the path of the  embedded shell script if no custom view command is defined
+			//Get the path of the  embedded shell script and word processor plugins scripts
 		
 			var MY_ID = "zoteroquicklook@gmail.com";  
 			
@@ -74,7 +76,8 @@ Zotero.ZoteroQuickLook = {
 
 			}
 				
-
+			//Initialize the word processor integration.
+			
 			Zotero.ZoteroQuickLook.initIntegration();
 			
 			Zotero.debug("ZoterQuickLook: finished init",3);
@@ -140,7 +143,8 @@ Zotero.ZoteroQuickLook = {
 			
 			//Remove ITEM from the beginning
 			arg=field.getCode().substr(5);
-// Start of copy-paste
+			
+			// Start of copy-paste
 
 			if(arg[0] == "{") {		// JSON field
 				// fix for corrupted fields
