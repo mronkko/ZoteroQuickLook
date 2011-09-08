@@ -7,10 +7,11 @@ Zotero.ZoteroQuickLookQuickFormat = {
 		//Zotero Quick Look takes priority in event listeners, so we need to remove and readd the original.
 		var originalListener=Zotero_QuickFormat._onQuickSearchKeyPress;
 		
-		document.getElementById('quick-format-entry').addEventListener("keypress",this.onKey,false);
+		document.getElementById('quick-format-entry').addEventListener("keypress",this.onKey,true);
 		
 		//Override ESC key for the panel to prevent it closing if quick look is open. In this case the first esc press should close the quicklook and second should close the panel
 		
+		document.getElementById("quick-format-reference-list").addEventListener("keypress",this.captureEsc,true);
 		Zotero.debug("ZoteroQuickLookQuickFormat finished init",3)
 
 	},
@@ -46,7 +47,14 @@ Zotero.ZoteroQuickLookQuickFormat = {
 			//If QuickLook is open, stop event propagation
 			Zotero.debug("ZoteroQuickLook: Got esc");
 			
-			return this.captureEsc(event);
+			if (Zotero.ZoteroQuickLook.isActive()){
+				event.stopPropagation();
+				event.preventDefault();
+				Zotero.ZoteroQuickLook.handleKeyPress(event,null);
+				return false;
+			}
+	
+			return true;
 		}
 	},
 	
@@ -60,7 +68,7 @@ Zotero.ZoteroQuickLookQuickFormat = {
 			Zotero.ZoteroQuickLook.handleKeyPress(event,null);
 			return false;
 		}
-			
+		return true;
 	}
 	
 }
