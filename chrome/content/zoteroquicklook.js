@@ -1,3 +1,6 @@
+//This is hopefully not needed in the future.
+const INTEGRATION_TYPE_ITEM = 1;
+
 Zotero.ZoteroQuickLook = {
 
 
@@ -133,122 +136,69 @@ Zotero.ZoteroQuickLook = {
 	
 		Zotero.Integration.Document.prototype.quickLook = function() {
 
-			this._getSession(true);
-	
-			var field = this._doc.cursorInField(this._session.data.prefs['fieldType'])
-				if(!field) {
-				throw new Zotero.Integration.DisplayException("notInCitation");
-			}
-			Zotero.debug("ZoteroQuickLook: Field content is: "+ field.getCode(),3)
-			
-			//Remove ITEM from the beginning
-			arg=field.getCode().substr(5);
-			
-			// Start of copy-paste
-
-			if(arg[0] == "{") {		// JSON field
-				// fix for corrupted fields
-				
-				Zotero.debug("NEW STYLE",3);
-
-				var lastBracket = arg.lastIndexOf("}");
-				if(lastBracket+1 != arg.length) {
-					arg = arg.substr(0, lastBracket+1);
-				}
-				
-				// get JSON
-				try {
-					var citation = Zotero.JSON.unserialize(arg);
-				} catch(e) {
-					// fix for corrupted fields (corrupted by Word, somehow)
-					try {
-						var citation = Zotero.JSON.unserialize(arg.substr(0, arg.length-1));
-					} catch(e) {
-						// another fix for corrupted fields (corrupted by 2.1b1)
-						try {
-							var citation = Zotero.JSON.unserialize(arg.replace(/{{((?:\s*,?"unsorted":(?:true|false)|\s*,?"custom":"(?:(?:\\")?[^"]*\s*)*")*)}}/, "{$1}"));
-						} catch(e) {
-							throw new Zotero.Integration.CorruptFieldException(arg);
-						}
-					}
-				}
-				
-				// fix for uppercase citation codes
-				if(citation.CITATIONITEMS) {
-					citation.citationItems = [];
-					for (var i=0; i<citation.CITATIONITEMS.length; i++) {
-						for (var j in citation.CITATIONITEMS[i]) {
-							switch (j) {
-								case 'ITEMID':
-									var field = 'itemID';
-									break;
-									
-								// 'position', 'custom'
-								default:
-									var field = j.toLowerCase();
-							}
-							if (!citation.citationItems[i]) {
-								citation.citationItems[i] = {};
-							}
-							citation.citationItems[i][field] = citation.CITATIONITEMS[i][j];
-						}
-					}
-				}
-
-			} else {				// ye olde style field
-				Zotero.debug("OLD STYLE",3);
-
-				var underscoreIndex = arg.indexOf("_");
-				var itemIDs = arg.substr(0, underscoreIndex).split("|");
-				
-				var lastIndex = arg.lastIndexOf("_");
-				if(lastIndex != underscoreIndex+1) {
-					var locatorString = arg.substr(underscoreIndex+1, lastIndex-underscoreIndex-1);
-					var locators = locatorString.split("|");
-				}
-				
-				var citationItems = new Array();
-				for(var i=0; i<itemIDs.length; i++) {
-					var citationItem = {id:itemIDs[i]};
-					if(locators) {
-						citationItem.locator = locators[i].substr(1);
-						citationItem.label = Zotero.Integration._oldCitationLocatorMap[locators[i][0]];
-					}
-					citationItems.push(citationItem);
-				}
-				var citation = {"citationItems":citationItems, properties:{}};
-			}
-
-// End of copy-paste
-
-// Another copy paste
-			var items=new Array();
-
-			for each(var citationItem in citation.citationItems) {
-				var zoteroItem = false;
-				if(citationItem.uri) {
-					Zotero.debug("ZoteroQuickLook: citation item has URI "+ citationItem.uri );
-					[zoteroItem, ] = this._session.uriMap.getZoteroItemForURIs(citationItem.uri);
-				} else if(citationItem.key) {
-					Zotero.debug("ZoteroQuickLook: citation item has key "+ citationItem.key );
-					zoteroItem = Zotero.Items.getByKey(citationItem.key);
-				}
-				else{
-					Zotero.debug("ZoteroQuickLook: citation does not have a key or URI" );
-				}
-				
-				if(zoteroItem) items.push(zoteroItem);
-			}
-
-// End of copy paste. At this point the citationItem.id s should match zotero item ids. 
-
+			var me = this;
 
 			if(Zotero.ZoteroQuickLook.isActive()){ 
 				Zotero.ZoteroQuickLook.closeQuickLook();
+				Zotero.Integration.complete(me._doc);
 			}
 			else{
-				Zotero.ZoteroQuickLook.openQuickLook(items);
+				this._getSession(true, false, function() {
+					var field = me._doc.cursorInField(me._session.data.prefs['fieldType'])
+					if(!field) {
+						throw new Zotero.Integration.DisplayException("notInCitation");
+					}
+
+					var fieldGetter = new Zotero.Integration.Fields(me._session, me._doc);
+					var items = fieldGetter.getFieldZoteroItems(field);
+					Zotero.debug(items);
+					Zotero.ZoteroQuickLook.openQuickLook(items);
+					Zotero.Integration.complete(me._doc);
+				});
+				
 			}
+		}
+		
+		/*
+
+		Returns zotero items for a given field.
+
+		*/
+
+		Zotero.Integration.Fields.prototype.getFieldZoteroItems = function(field) {
+			var newField, citation, fieldIndex
+
+			session = this._session,
+			me = this,
+			io = new function() { this.wrappedJSObject = this; }
+			
+			var zoteroItems = Array();
+			
+			// if there's already a citation, make sure we have item IDs in addition to keys
+			if(field) {
+				var code = field.getCode();
+				[type, content] = this.getCodeTypeAndContent(code);
+				if(type != INTEGRATION_TYPE_ITEM) {			
+					throw new Zotero.Integration.DisplayException("notInCitation");
+				}
+				
+				citation = io.citation = session.unserializeCitation(content);
+				
+				var zoteroItem;
+				for each(var citationItem in citation.citationItems) {
+					var item = false;
+
+					zoteroItem = false;
+					if(citationItem.uris) {
+						[zoteroItem, ] = session.uriMap.getZoteroItemForURIs(citationItem.uris);
+					} else if(citationItem.key) {
+						zoteroItem = Zotero.Items.getByKey(citationItem.key);
+					}
+					if(zoteroItem) zoteroItems.push(zoteroItem);
+				}
+			}
+			
+			return zoteroItems;
 		}
 	},
 	
