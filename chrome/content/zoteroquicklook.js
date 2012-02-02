@@ -116,11 +116,19 @@ Zotero.ZoteroQuickLook = {
 				if(zoteroQL.exists() === false){
 					Zotero.debug("ZoteroQuickLook: Did not find ZoteroQuickLook integration script, attempting to install.");
 					
-					file = Components.classes["@mozilla.org/file/local;1"]
-		                .createInstance(Components.interfaces.nsILocalFile);
-		            file.initWithPath(scriptDir+"/ZoteroQuickLook\\coq.scpt");
-		            
-		            file.copyTo(zoteroScriptsPath,"ZoteroQuickLook\\coq.scpt");
+					
+					var proc = Components.classes["@mozilla.org/process/util;1"].createInstance(Components.interfaces.nsIProcess);
+					
+					var osacompile = Components.classes["@mozilla.org/file/local;1"]
+					.createInstance(Components.interfaces.nsILocalFile);
+		            osacompile.initWithPath("/usr/bin/osacompile");
+
+					proc.init(osacompile);
+
+					Zotero.debug("Compiling script. Source:"+scriptDir+"/ZoteroQuickLook\\coq.scpt"+" Target: "+zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt");
+
+					proc.run(true, Array("-o",zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt",scriptDir+"/ZoteroQuickLook\\coq.scpt"), 3);
+
 				}
 				else{
 					Zotero.debug("ZoteroQuickLook: Found ZoteroQuickLook integration script.");
