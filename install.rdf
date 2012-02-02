@@ -37,7 +37,7 @@
 		<em:targetApplication>
 			<Description>
 				<em:id>zotero@chnm.gmu.edu</em:id>
-				<em:minVersion>3.*</em:minVersion>
+				<em:minVersion>3.0</em:minVersion>
 				<em:maxVersion>3.*</em:maxVersion>
 			</Description>
 		</em:targetApplication>
