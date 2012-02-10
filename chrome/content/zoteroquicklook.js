@@ -101,6 +101,10 @@ Zotero.ZoteroQuickLook = {
 		
 		if(Zotero.isMac){
 			
+			var installer = Components.classes["@zotero.org/Zotero/integration/installer?agent=MacWord;1"].createInstance(Components.interfaces.nsIRunnable).wrappedJSObject;
+			installer.writeScript(installer.getScriptItemsDirectory()+"/MyScript.scpt", 'tell application "Finder" to activate');
+
+			/*
 			var zoteroScriptsPath = Components.classes["@mozilla.org/file/local;1"]
                 .createInstance(Components.interfaces.nsILocalFile);
 		
@@ -137,6 +141,7 @@ Zotero.ZoteroQuickLook = {
 			else{
 				Zotero.debug("ZoteroQuickLook: Did not find Zotero word processor integration scripts");
 			}
+			*/
 		}
 	},
 
