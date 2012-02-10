@@ -102,7 +102,12 @@ Zotero.ZoteroQuickLook = {
 		if(Zotero.isMac){
 			
 			var installer = Components.classes["@zotero.org/Zotero/integration/installer?agent=MacWord;1"].createInstance(Components.interfaces.nsIRunnable).wrappedJSObject;
-			installer.writeScript(installer.getScriptItemsDirectory()+"/MyScript.scpt", 'tell application "Finder" to activate');
+			installer.writeScript(installer.getScriptItemsDirectory()+"/Zotero/ZoteroQuickLook\\coq.scpt",
+			'try\n'+
+			'do shell script "PIPE=\"/Users/Shared/.zoteroIntegrationPipe_$LOGNAME\";  if [ ! -e \"$PIPE\" ]; then PIPE=\'~/.zoteroIntegrationPipe\'; fi; if [ -e \"$PIPE\" ]; then echo \'MacWord2008 quickLook \'" & quoted form of POSIX path of (path to current application) & " > \"$PIPE\"; else exit 1; fi;"\n'+
+			'on error\n'+
+			'display alert "Word could not communicate with Zotero. Please ensure that Firefox is open and try again." as critical\n'+
+			'end try\n');
 
 			/*
 			var zoteroScriptsPath = Components.classes["@mozilla.org/file/local;1"]
