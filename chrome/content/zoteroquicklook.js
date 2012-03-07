@@ -92,23 +92,87 @@ Zotero.ZoteroQuickLook = {
 	
 	initScripts: function(scriptDir) {
 	
-		 if((Zotero.isMac || Zotero.isLinux) && this.customviewcommand==""){
-
-			Zotero.ZoteroQuickLook.initExecutable(scriptDir+"/zoteroquicklook.pl")
+		//Initialize the command that is used.
 		
+		Zotero.debug("Initializing viewer command");
+
+		this.viewerExecutable = Components.classes["@mozilla.org/file/local;1"]
+                .createInstance(Components.interfaces.nsILocalFile);
+		
+		//TODO: The script fails when custom view command is bogus.
+		
+		if(Zotero.ZoteroQuickLook.customviewcommand!=""){
+			Zotero.debug("ZoteroQuickLook is configuring custom view command");
+
+			this.viewerExecutable.initWithPath(Zotero.ZoteroQuickLook.customviewcommand);
+			if(this.viewerExecutable.exists() === false){
+				alert("The custom view command  " + Zotero.ZoteroQuickLook.customviewcommand + " does not exits.");
+			}
 		}
-		// Check if the word processor integration for Zotero is installed and install the quicklook word processor script
+
+		
+		// Mac and Linux use the same wrapper file for calling QuickLook or Gloobus
+
+		else if(Zotero.isMac || Zotero.isLinux){
+		
+			Zotero.debug("ZoteroQuickLook is configuring itself for Mac or Linux");
+
+			var scriptlocation = scriptDir+"/zoteroquicklook.pl";
+	
+			if(Zotero.isLinux){
+				this.viewerExecutable.initWithPath("/usr/bin/gloobus-preview");
+				if(this.viewerExecutable.exists() === false){
+					alert("/usr/bin/gloobus-preview is missing. Please install Gloobus or spesify a custom view command instead.");
+					return;
+				}
+			}
+			
+			if(this.prefs.getBoolPref("usefilenameworkaround")){
+
+
+				Zotero.debug("Path to perl script is " + scriptLocation,3);
+
+				//Run the script with perl to avoid permission issues
+				this.viewerExecutable.initWithPath("/usr/bin/perl");
+
+				this.viewerBaseArguments=[scriptLocation];
+			}
+			else{
+				if(Zotero.isLinux){
+					this.viewerExecutable.initWithPath("/usr/bin/gloobus-preview");
+				}
+				else{
+					this.viewerExecutable.initWithPath("/usr/bin/qlmanage");
+					this.viewerBaseArguments=['-p'];
+				}
+			
+			}
+
+		}
+		
+		else if(Zotero.isWin){
+			Zotero.debug("ZoteroQuickLook is configuring itself for Windows");
+			this.viewerExecutable.initWithPath("C:\\Program Files\\maComfort\\maComfort.exe");
+			if(this.viewerExecutable.exists() === false){
+				this.viewerExecutable.initWithPath("C:\\Program Files (x86)\\maComfort\\maComfort.exe");
+				if(this.viewerExecutable.exists() === false){
+					alert("MaComfort not found. Please install MaComfort or spesify a custom view command instead.");
+				}
+			}
+			this.viewerBaseArguments=['-ql'];
+		}
+
+		//Install word processor integration on mac
 		
 		if(Zotero.isMac){
 			
 			var installer = Components.classes["@zotero.org/Zotero/integration/installer?agent=MacWord;1"].createInstance(Components.interfaces.nsIRunnable).wrappedJSObject;
 			installer.writeScript(installer.getScriptItemsDirectory()+"/Zotero/ZoteroQuickLook\\coq.scpt",
-			'try\n'+
-			'do shell script "PIPE=\"/Users/Shared/.zoteroIntegrationPipe_$LOGNAME\";  if [ ! -e \"$PIPE\" ]; then PIPE=\'~/.zoteroIntegrationPipe\'; fi; if [ -e \"$PIPE\" ]; then echo \'MacWord2008 quickLook \'" & quoted form of POSIX path of (path to current application) & " > \"$PIPE\"; else exit 1; fi;"\n'+
-			'on error\n'+
-			'display alert "Word could not communicate with Zotero. Please ensure that Firefox is open and try again." as critical\n'+
-			'end try\n');
-
+								"try\n"+
+								"do shell script \"PIPE=\\\"/Users/Shared/.zoteroIntegrationPipe_$LOGNAME\\\";  if [ ! -e \\\"$PIPE\\\" ]; then PIPE=~/.zoteroIntegrationPipe; fi; if [ -e \\\"$PIPE\\\" ]; then echo 'MacWord2008 quickLook '\" & quoted form of POSIX path of (path to current application) & \" > \\\"$PIPE\\\"; else exit 1; fi;\"\n"+
+								"on error\n"+
+								"display alert \"Word could not communicate with Zotero. Please ensure that Zotero Standalone or Firefox is open and try again.\" as critical\n"+
+								"end try\n");
 			/*
 			var zoteroScriptsPath = Components.classes["@mozilla.org/file/local;1"]
                 .createInstance(Components.interfaces.nsILocalFile);
@@ -220,69 +284,6 @@ Zotero.ZoteroQuickLook = {
 		}
 	},
 	
-	initExecutable: function(scriptLocation) {
-	//Initialize the command that is used.
-
-		this.viewerExecutable = Components.classes["@mozilla.org/file/local;1"]
-                .createInstance(Components.interfaces.nsILocalFile);
-		
-		//TODO: The script fails when custom view command is bogus.
-		
-		if(Zotero.ZoteroQuickLook.customviewcommand!=""){
-			this.viewerExecutable.initWithPath(Zotero.ZoteroQuickLook.customviewcommand);
-			if(this.viewerExecutable.exists() === false){
-				alert("The custom view command  " + Zotero.ZoteroQuickLook.customviewcommand + " does not exits.");
-			}
-		}
-
-		
-		// Mac and Linux use the same wrapper file for calling QuickLook or Gloobus
-
-		else if(Zotero.isMac || Zotero.isLinux){
-			
-
-			if(Zotero.isLinux){
-				this.viewerExecutable.initWithPath("/usr/bin/gloobus-preview");
-				if(this.viewerExecutable.exists() === false){
-					alert("/usr/bin/gloobus-preview is missing. Please install Gloobus or spesify a custom view command instead.");
-					return;
-				}
-			}
-			
-			if(this.prefs.getBoolPref("usefilenameworkaround")){
-
-
-				Zotero.debug("Path to perl script is " + scriptLocation,3);
-
-				//Run the script with perl to avoid permission issues
-				this.viewerExecutable.initWithPath("/usr/bin/perl");
-
-				this.viewerBaseArguments=[scriptLocation];
-			}
-			else{
-				if(Zotero.isLinux){
-					this.viewerExecutable.initWithPath("/usr/bin/gloobus-preview");
-				}
-				else{
-					this.viewerExecutable.initWithPath("/usr/bin/qlmanage");
-					this.viewerBaseArguments=['-p'];
-				}
-			
-			}
-
-		}
-		
-		else if(Zotero.isWin){
-			this.viewerExecutable.initWithPath("C:\\Program Files\\maComfort\\maComfort.exe");
-			if(this.viewerExecutable.exists() === false){
-				this.viewerExecutable.initWithPath("C:\\Program Files (x86)\\maComfort\\maComfort.exe");
-				if(this.viewerExecutable.exists() === false){
-					alert("MaComfort not found. Please install MaComfort or spesify a custom view command instead.");
-				}
-			}
-			this.viewerBaseArguments=['-ql'];
-		}
-	},
 	
 	cleanFileName: function(filename) {
 		//This is a workaround for firefox bug. See https://www.zotero.org/trac/ticket/957
