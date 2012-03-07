@@ -117,7 +117,7 @@ Zotero.ZoteroQuickLook = {
 		
 			Zotero.debug("ZoteroQuickLook is configuring itself for Mac or Linux");
 
-			var scriptlocation = scriptDir+"/zoteroquicklook.pl";
+			var scriptLocation = scriptDir+"/zoteroquicklook.pl";
 	
 			if(Zotero.isLinux){
 				this.viewerExecutable.initWithPath("/usr/bin/gloobus-preview");
