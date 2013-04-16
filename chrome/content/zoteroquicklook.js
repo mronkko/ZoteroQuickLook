@@ -112,7 +112,7 @@ Zotero.ZoteroQuickLook = {
 				var zoteroQL = Components.classes["@mozilla.org/file/local;1"]
                 .createInstance(Components.interfaces.nsILocalFile);
 		
-				zoteroQL.initWithPath("~/Documents/Microsoft User Data/Word Script Menu Items/Zotero/ZoteroQuickLook\\coq.scpt");
+				zoteroQL.initWithPath("~/Library/Application Support/Microsoft/Office/Word Script Menu Items/Zotero/ZoteroQuickLook\\coq.scpt");
 				if(zoteroQL.exists() === false){
 					Zotero.debug("ZoteroQuickLook: Did not find ZoteroQuickLook integration script, attempting to install.");
 					
