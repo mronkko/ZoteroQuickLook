@@ -104,7 +104,7 @@ Zotero.ZoteroQuickLook = {
 			var zoteroScriptsPath = Components.classes["@mozilla.org/file/local;1"]
                 .createInstance(Components.interfaces.nsILocalFile);
 		
-			zoteroScriptsPath.initWithPath("~/Documents/Microsoft User Data/Word Script Menu Items/Zotero");
+			zoteroScriptsPath.initWithPath("~/Library/Application Support/Microsoft/Office/Word Script Menu Items/Zotero");
 
 			if(zoteroScriptsPath.exists()){
 				Zotero.debug("ZoteroQuickLook: Found Zotero word processor integration scripts");
