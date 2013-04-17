@@ -163,64 +163,44 @@ Zotero.ZoteroQuickLook = {
 
 			if(Zotero.ZoteroQuickLook.isActive()){ 
 				Zotero.ZoteroQuickLook.closeQuickLook();
-				Zotero.Integration.complete(me._doc);
+				return;
 			}
 			else{
-				return this._getSession(false, false).then(function() {
+				return this._getSession(true, false).then(function() {
 					var field = me._doc.cursorInField(me._session.data.prefs['fieldType'])
 					if(!field) {
-						throw new Zotero.Integration.DisplayException("notInCitation");
+						throw new Zotero.Exception.Alert("integration.error.notInCitation", [],
+							"integration.error.title");
+					}
+		 
+					var code = field.getCode();
+					fieldGetter = new Zotero.Integration.Fields(me._session, me._doc);
+					var [type, content] = fieldGetter.getCodeTypeAndContent(code);
+					
+					if(type !== 1) {
+						throw new Zotero.Exception.Alert("integration.error.notInCitation", [],
+							"integration.error.title");
+					}
+		 
+					var citation = me._session.unserializeCitation(content);
+					me._session.lookupItems(citation);
+		 
+					var zoteroItems = [];
+
+					for each(var citationItem in citation.citationItems) {
+						zoteroItem = false;
+						if(citationItem.uris) {
+							[zoteroItem, ] = me._session.uriMap.getZoteroItemForURIs(citationItem.uris);
+						} else if(citationItem.key) {
+							zoteroItem = Zotero.Items.getByKey(citationItem.key);
+						}
+						if(zoteroItem) zoteroItems.push(zoteroItem);
 					}
 
-					var fieldGetter = new Zotero.Integration.Fields(me._session, me._doc);
-					var items = fieldGetter.getFieldZoteroItems(field);
-					Zotero.debug(items);
-					Zotero.ZoteroQuickLook.openQuickLook(items);
+					Zotero.ZoteroQuickLook.openQuickLook(zoteroItems);
+					return;
 				});
-				
 			}
-		}
-		
-		/*
-
-		Returns zotero items for a given field.
-
-		*/
-
-		Zotero.Integration.Fields.prototype.getFieldZoteroItems = function(field) {
-			var newField, citation, fieldIndex
-
-			session = this._session,
-			me = this,
-			io = new function() { this.wrappedJSObject = this; }
-			
-			var zoteroItems = Array();
-			
-			// if there's already a citation, make sure we have item IDs in addition to keys
-			if(field) {
-				var code = field.getCode();
-				[type, content] = this.getCodeTypeAndContent(code);
-				if(type != INTEGRATION_TYPE_ITEM) {			
-					throw new Zotero.Integration.DisplayException("notInCitation");
-				}
-				
-				citation = io.citation = session.unserializeCitation(content);
-				
-				var zoteroItem;
-				for each(var citationItem in citation.citationItems) {
-					var item = false;
-
-					zoteroItem = false;
-					if(citationItem.uris) {
-						[zoteroItem, ] = session.uriMap.getZoteroItemForURIs(citationItem.uris);
-					} else if(citationItem.key) {
-						zoteroItem = Zotero.Items.getByKey(citationItem.key);
-					}
-					if(zoteroItem) zoteroItems.push(zoteroItem);
-				}
-			}
-			
-			return zoteroItems;
 		}
 	},
 	
