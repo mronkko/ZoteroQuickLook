@@ -125,9 +125,22 @@ Zotero.ZoteroQuickLook = {
 
 					proc.init(osacompile);
 
-					Zotero.debug("Compiling script. Source:"+scriptDir+"/ZoteroQuickLook\\coq.scpt"+" Target: "+zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt");
+					Zotero.debug("ZoteroQuickLook: Compiling script. Source:"+scriptDir+"/ZoteroQuickLook\\coq.scpt"+" Target: "+zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt");
 
-					proc.run(true, Array("-o",zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt",scriptDir+"/ZoteroQuickLook\\coq.scpt"), 3);
+					var userAgent = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULRuntime).OS; 
+
+					Zotero.debug("ZoteroQuickLook: Determining OS version: " & userAgent);
+
+					//Before lion
+					if( /Mac OS X 10_6/.test(userAgent) || /Mac OS X 10_5/.test(userAgent) || /Mac OS X 10_4/.test(userAgent)){
+						Zotero.debug("ZoteroQuickLook: Compiling for pre-Lion Mac OS X")
+						proc.run(true, Array("-o",zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt",scriptDir+"/ZoteroQuickLook\\coq.scpt"), 3);
+					}
+					//Lion and after
+					else{
+						Zotero.debug("ZoteroQuickLook: Compiling for Lion or later Mac OS X")
+						proc.run(true, Array("-t", "osas", "-c", "ToyS", "-o", zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt",scriptDir+"/ZoteroQuickLook\\coq.scpt"), 7);
+					}
 
 				}
 				else{
@@ -144,6 +157,8 @@ Zotero.ZoteroQuickLook = {
 	
 		Zotero.Integration.Document.prototype.quickLook = function() {
 
+			Zotero.debug("ZoteroQuickLook: Executing integration function");
+			
 			var me = this;
 
 			if(Zotero.ZoteroQuickLook.isActive()){ 
@@ -151,7 +166,7 @@ Zotero.ZoteroQuickLook = {
 				Zotero.Integration.complete(me._doc);
 			}
 			else{
-				this._getSession(true, false, function() {
+				return this._getSession(false, false).then(function() {
 					var field = me._doc.cursorInField(me._session.data.prefs['fieldType'])
 					if(!field) {
 						throw new Zotero.Integration.DisplayException("notInCitation");
@@ -161,7 +176,6 @@ Zotero.ZoteroQuickLook = {
 					var items = fieldGetter.getFieldZoteroItems(field);
 					Zotero.debug(items);
 					Zotero.ZoteroQuickLook.openQuickLook(items);
-					Zotero.Integration.complete(me._doc);
 				});
 				
 			}
