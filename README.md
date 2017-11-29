@@ -1,10 +1,10 @@
 ZoteroQuickLook
 ===============
 
-This open source project implements QuickLook in Zotero
+This open source project implements QuickLook in Zotero.
 
-End-user documentation and support 
-https://zoteroquicklook.uservoice.com
+This is a fork of the extension developed by Mikko Rönkkö to maintain compatibility with Zotero 5.
 
-Mozilla extensions page
-https://addons.mozilla.org/en-us/firefox/addon/zoteroquicklook
+Please post any questions or bugs to the Zotero forums.
+
+For installation and support information, see [this repo's wiki](https://github.com/bwiernik/ZoteroQuickLook/wiki).
