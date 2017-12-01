@@ -44,8 +44,6 @@ You can read more about the problem on [Stack Overflow](http://stackoverflow.com
 
 # Getting support
 
-I have limited experience with the full ZoteroQuickLook code, so I may be limited in my ability to fix bugs, but I will do my best to help.
-
 Please post any questions or bugs to the Zotero forums. Include "ZoteroQuickLook" in the thread title. Also include the following information:
  - Operating system and version (e.g., macOS 10.13.2)
  - Zotero version
