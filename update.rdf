@@ -5,13 +5,13 @@
       <rdf:Seq>
         <rdf:li>
           <rdf:Description>
-            <em:version>1.4.0</em:version>
+            <em:version>1.3.2</em:version>
             <em:targetApplication>
               <rdf:Description>
                 <em:id>zotero@chnm.gmu.edu</em:id>
                 <em:minVersion>4.0</em:minVersion>
                 <em:maxVersion>5.*</em:maxVersion>
-                <em:updateLink>https://github.com/bwiernik/ZoteroQuickLook/releases/download/v1.4.0/zoteroquicklook.xpi</em:updateLink>
+                <em:updateLink>https://github.com/mronkko/ZoteroQuickLook/releases/download/v1.3.2/zoteroquicklook.xpi</em:updateLink>
               </rdf:Description>
             </em:targetApplication>
             <em:targetApplication>
@@ -19,7 +19,7 @@
                 <em:id>juris-m@juris-m.github.io</em:id>
                 <em:minVersion>4.0</em:minVersion>
                 <em:maxVersion>5.*</em:maxVersion>
-                <em:updateLink>https://github.com/bwiernik/ZoteroQuickLook/releases/download/v1.4.0/zoteroquicklook.xpi</em:updateLink>
+                <em:updateLink>https://github.com/mronkko/ZoteroQuickLook/releases/download/v1.3.2/zoteroquicklook.xpi</em:updateLink>
               </rdf:Description>
             </em:targetApplication>
           </rdf:Description>
