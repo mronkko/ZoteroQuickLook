@@ -438,7 +438,7 @@ Checks the attachment file or writes a content of a note to a file and then push
 	
 		Zotero.ZoteroQuickLook.proc.init(Zotero.ZoteroQuickLook.viewerExecutable);
 	
-		Zotero.ZoteroQuickLook.proc.run(false, args, args.length);
+		Zotero.ZoteroQuickLook.proc.runw(false, args, args.length);
 		
 		return true;
 	},
