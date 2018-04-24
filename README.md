@@ -30,7 +30,7 @@ If you do not like Gloobus, you can define a custom QuickLook command:
 
 ## Installing on Windows
 
-On Windows, you must first install a QuickLook tool. By default, ZoteroQuickLook is set up to work with [QuickLook](http://pooi.moe/QuickLook/). Alternative QuickLook tools for Windows include [Seer](1218.io), [WinQuickLook](https://github.com/shibayan/WinQuickLook), and the paid software [MaComfort](https://leonardo.re/macomfort/). In my experience, the default option, QuickLook, is the most stable and powerful and least resource intensive option. You can choose another QuickLook program if you like. The software must be able to take a file name as a command line parameter.
+On Windows, you must first install a QuickLook tool. By default, ZoteroQuickLook is set up to work with [QuickLook](http://pooi.moe/QuickLook/). Alternative QuickLook tools for Windows include [Seer](http://1218.io), [WinQuickLook](https://github.com/shibayan/WinQuickLook), and the paid software [MaComfort](https://leonardo.re/macomfort/). In my experience, the default option, QuickLook, is the most stable and powerful and least resource intensive option. You can choose another QuickLook program if you like. The software must be able to take a file name as a command line parameter.
 
 After installing a QuickLook program, set ZoteroQuickLook to use this program:
  1. Open the Config Editor in Zotero's Advanced preferences pane.
