@@ -126,7 +126,7 @@ Zotero.ZoteroQuickLook = {
 
 					proc.init(osacompile);
 
-					Zotero.debug("ZoteroQuickLook: Compiling script. Source:"+scriptDir+"/ZoteroQuickLook\\coq.scpt"+" Target: "+zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt");
+					Zotero.debug("ZoteroQuickLook: Compiling script. Source:"+scriptDir+"/ZoteroQuickLook/coq.scpt"+" Target: "+zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt");
 
 					var userAgent = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULRuntime).OS;
 
@@ -135,12 +135,12 @@ Zotero.ZoteroQuickLook = {
 					//Before lion
 					if( /Mac OS X 10_6/.test(userAgent) || /Mac OS X 10_5/.test(userAgent) || /Mac OS X 10_4/.test(userAgent)){
 						Zotero.debug("ZoteroQuickLook: Compiling for pre-Lion Mac OS X")
-						proc.run(true, Array("-o",zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt",scriptDir+"/ZoteroQuickLook\\coq.scpt"), 3);
+						proc.run(true, Array("-o",zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt",scriptDir+"/ZoteroQuickLook/coq.scpt"), 3);
 					}
 					//Lion and after
 					else{
 						Zotero.debug("ZoteroQuickLook: Compiling for Lion or later Mac OS X")
-						proc.run(true, Array("-t", "osas", "-c", "ToyS", "-o", zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt",scriptDir+"/ZoteroQuickLook\\coq.scpt"), 7);
+						proc.run(true, Array("-t", "osas", "-c", "ToyS", "-o", zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt",scriptDir+"/ZoteroQuickLook/coq.scpt"), 7);
 					}
 
 				}
