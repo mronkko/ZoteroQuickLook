@@ -30,7 +30,7 @@ If you do not like Gloobus, you can define a custom QuickLook command:
 
 ## Installing on Windows
 
-On Windows, you must first install a QuickLook tool. By default, ZoteroQuickLook is set up to work with [MaComfort](https://leonardo.re/macomfort/). However, this is a paid software and can be quite resource intensive and buggy. Several free, open source, and more stable tools exist. Available QuickLook tools for Windows include [QuickLook](http://pooi.moe/QuickLook/), [Seer](1218.io), and [WinQuickLook](https://github.com/shibayan/WinQuickLook). You can choose another QuickLook program if you like. The software must be able to take a file name as a command line parameter.
+On Windows, you must first install a QuickLook tool. By default, ZoteroQuickLook is set up to work with [QuickLook](http://pooi.moe/QuickLook/). Alternative QuickLook tools for Windows include [Seer](1218.io), [WinQuickLook](https://github.com/shibayan/WinQuickLook), and the paid software [MaComfort](https://leonardo.re/macomfort/). In my experience, the default option, QuickLook, is the most stable and powerful and least resource intensive option. You can choose another QuickLook program if you like. The software must be able to take a file name as a command line parameter.
 
 After installing a QuickLook program, set ZoteroQuickLook to use this program:
  1. Open the Config Editor in Zotero's Advanced preferences pane.
@@ -38,9 +38,9 @@ After installing a QuickLook program, set ZoteroQuickLook to use this program:
 
 ### Alternative build for Windows
 
-Installing the extension on Windows sometimes fails with the error message: "ZoteroQuickLook cannot be installed because Zotero cannot modify the needed file." This is a Windows specific problem caused by the 256 character filename length limitation. This limit is reached during unpacking the xpi archive when installing the extension. Mozilla has fixed the issue by eliminating unpacking of extensions by default and running them directly from the xpi archive. However, this solution does not work for ZoteroQuickLook because on Mac and Linux, the extension uses executable files that need to be unpacked so that they can be run. These files are not used on Windows and there is a parallel version of ZoteroQuickLook that supports running directly from the xpi file. This version is called `zoteroquicklook-windows.xpi` and is available from the Releases section of this GitHub repo. 
+Installing the extension on Windows sometimes fails with the error message: "ZoteroQuickLook cannot be installed because Zotero cannot modify the needed file." This is a Windows specific problem caused by the 256 character filename length limitation. This limit is reached during unpacking the xpi archive when installing the extension. Mozilla has fixed the issue by eliminating unpacking of extensions by default and running them directly from the xpi archive. However, this solution does not work for ZoteroQuickLook because on Mac and Linux, the extension uses executable files that need to be unpacked so that they can be run. These files are not used on Windows and there is a parallel version of ZoteroQuickLook that supports running directly from the xpi file. This version is called `zoteroquicklook-windows.xpi` and is available from the Releases section of this GitHub repo.
 
-You can read more about the problem on [Stack Overflow](http://stackoverflow.com/questions/7872489/addon-cannot-be-installed-by-an-error-of-not-be-able-to-modify-the-needed-file) and the pages linked to from there. 
+You can read more about the problem on [Stack Overflow](http://stackoverflow.com/questions/7872489/addon-cannot-be-installed-by-an-error-of-not-be-able-to-modify-the-needed-file) and the pages linked to from there.
 
 # Getting support
 
@@ -54,7 +54,7 @@ Please post any questions or bugs to the Zotero forums. Include "ZoteroQuickLook
 
 ## Log files
 
-Log file will sometimes be helpful in diagnosing possible issues, so you need to submit a log file when asking for support. 
+Log file will sometimes be helpful in diagnosing possible issues, so you need to submit a log file when asking for support.
 
 To create a log file, in Zotero, follow these steps:
  1. Click Help -> Debug Output Logging -> Restart with Logging Enabled….
