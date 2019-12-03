@@ -4,7 +4,7 @@
 		<em:id>zoteroquicklook@gmail.com</em:id>
 		<em:type>2</em:type> <!-- type=extension -->
 		<em:name>ZoteroQuickLook</em:name>
-		<em:version>1.3.3</em:version>
+		<em:version>1.4.0</em:version>
 		<em:creator>Mikko Ronkko</em:creator>
 		<em:contributor>Brenton M. Wiernik</em:contributor>
 		<em:description>Quick Look Utility for Zotero.</em:description>
