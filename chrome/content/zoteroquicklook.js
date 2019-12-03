@@ -2,39 +2,27 @@
 const INTEGRATION_TYPE_ITEM = 1;
 
 Zotero.ZoteroQuickLook = {
-
-
+	initialized: false,
 	proc:null,
-    prefs: null,
 	customviewcommand:null,
     isBrowseMode:false,
     viewerExecutable:null,
     viewerBaseArguments:null,
 
-	init: function() {
-
-
+	init: async function () {
 		document.getElementById('zotero-itemmenu').addEventListener("popupshowing", this.showQuickLookMenu, false);
 		document.getElementById('zotero-items-tree').addEventListener("keydown",this.onKey,false);
 
-		//If preferences are null, it means that this is the first call to init and we need to do some more intialization
-
-		if(this.prefs==null){
-
+		if (!this.initialized) {
 			Zotero.debug("ZoterQuickLook: starts init",3);
 
-			//set up preferences
-			this.prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch("extensions.zoteroquicklook.");
-
 			//Trim the preference to avoid problems of extra spaces
-			this.customviewcommand=this.prefs.getCharPref("customviewcommand").replace(/^\s+|\s+$/g, '');
+			this.customviewcommand = this.getPref('customviewcommand').replace(/^\s+|\s+$/g, '');
 
 			//Check that the custom view command exists and show an alert if it does not.
 
 			if(this.customviewcommand!=""){
-				this.viewerExecutable = Components.classes["@mozilla.org/file/local;1"]
-					.createInstance(Components.interfaces.nsILocalFile);
-	            this.viewerExecutable.initWithPath(this.customviewcommand);
+				this.viewerExecutable = Zotero.File.pathToFile(this.customviewcommand);
                 this.viewerBaseArguments=[''];
 
 				if(this.viewerExecutable.exists() === false){
@@ -43,105 +31,78 @@ Zotero.ZoteroQuickLook = {
 					this.customviewcommand="";
 				}
 			}
-			//Location of the perl script that is used on linux and mac
-			var scriptLocation;
 
-			//Get the path of the  embedded shell script and word processor plugins scripts
-
-			var MY_ID = "zoteroquicklook@gmail.com";
-
-			if(Components.interfaces.nsIExtensionManager){
-				Zotero.debug("This is not Firefox 4 or later",3);
-				//Earlier versions
-
-				var em = Components.classes["@mozilla.org/extensions/manager;1"].getService(Components.interfaces.nsIExtensionManager);
-
-				scriptLocation=em.getInstallLocation(MY_ID).getItemFile(MY_ID, "chrome/content").path;
-
-				Zotero.ZoteroQuickLook.initScripts(scriptLocation);
+			// Get the path of the embedded Perl script (Mac/Linux) and word processor plugins scripts (Mac)
+			if (!Zotero.isWin && this.customviewcommand == "") {
+				await new Promise(function (resolve) {
+					var MY_ID = "zoteroquicklook@gmail.com";
+					Components.utils.import("resource://gre/modules/AddonManager.jsm");
+					AddonManager.getAddonByID(MY_ID, async function (addon) {
+						let scriptURI = addon.getResourceURI("chrome/content");
+						await this.initScripts(scriptURI.spec);
+						resolve();
+					}.bind(this));
+				}.bind(this));
 			}
-			else{
-				//Firefox 4
-				Zotero.debug("ZoterQuickLook: detected Firefox 4 or later",3);
-
-				Components.utils.import("resource://gre/modules/AddonManager.jsm");
-
-				AddonManager.getAddonByID(MY_ID, function(addon) {
-
-				resourceURI=addon.getResourceURI("chrome/content");
-
-
-				scriptLocation = resourceURI.QueryInterface(Components.interfaces.nsIFileURL).file.path;
-
-				Zotero.ZoteroQuickLook.initScripts(scriptLocation);
-
-				});
-
+			else {
+				this.initExecutable();
 			}
 
-			//Initialize the word processor integration.
+			// Initialize the word processor integration
+			// Disabled due to removal of script menu in Word 2016+
+			//Zotero.ZoteroQuickLook.initIntegration();
 
-			Zotero.ZoteroQuickLook.initIntegration();
-
-			Zotero.debug("ZoterQuickLook: finished init",3);
-
+			Zotero.debug("ZoteroQuickLook: finished init",3);
+			
+			this.initialized = true;
 		}
 	},
 
-	//Initializes external scripts.
-
-	initScripts: function(scriptDir) {
-
-		//if((Zotero.isMac || Zotero.isLinux) && this.customviewcommand==""){
-		if(this.customviewcommand==""){
-
-			Zotero.ZoteroQuickLook.initExecutable(scriptDir+"/zoteroquicklook.pl")
-
-		}
+	/**
+	 * Initializes external scripts
+	 */
+	initScripts: async function (scriptURL) {
+		let path = await this.copyURLToTempDir(scriptURL + "/zoteroquicklook.pl");
+		Zotero.ZoteroQuickLook.initExecutable(path);
+		
+		/*
 		// Check if the word processor integration for Zotero is installed and install the quicklook word processor script
-
-		if(Zotero.isMac){
-
-			var zoteroScriptsPath = Components.classes["@mozilla.org/file/local;1"]
-                .createInstance(Components.interfaces.nsILocalFile);
-
-			zoteroScriptsPath.initWithPath("~/Library/Application Support/Microsoft/Office/Word Script Menu Items/Zotero");
-
-			if(zoteroScriptsPath.exists()){
+		// Disabled due to removal of script menu in Word 2016+
+		if (Zotero.isMac) {
+			let zoteroScriptsPath = Zotero.File.pathToFile(
+				"~/Library/Application Support/Microsoft/Office/Word Script Menu Items/Zotero"
+			);
+			if (zoteroScriptsPath.exists()) {
 				Zotero.debug("ZoteroQuickLook: Found Zotero word processor integration scripts");
 
-				var zoteroQL = Components.classes["@mozilla.org/file/local;1"]
-                .createInstance(Components.interfaces.nsILocalFile);
-
-				zoteroQL.initWithPath("~/Library/Application Support/Microsoft/Office/Word Script Menu Items/Zotero/ZoteroQuickLook\\coq.scpt");
-				if(zoteroQL.exists() === false){
+				var zoteroQL = Zotero.File.pathToFile(
+					"~/Library/Application Support/Microsoft/Office/Word Script Menu Items/Zotero/ZoteroQuickLook/coq.scpt"
+				);
+				if (!zoteroQL.exists()){
 					Zotero.debug("ZoteroQuickLook: Did not find ZoteroQuickLook integration script, attempting to install.");
+					
+					let sourceScript = await this.copyURLToTempDir(scriptURL + "ZoteroQuickLook/coq.scpt");
 
-
-					var proc = Components.classes["@mozilla.org/process/util;1"].createInstance(Components.interfaces.nsIProcess);
-
-					var osacompile = Components.classes["@mozilla.org/file/local;1"]
-					.createInstance(Components.interfaces.nsILocalFile);
-		            osacompile.initWithPath("/usr/bin/osacompile");
-
-					proc.init(osacompile);
-
-					Zotero.debug("ZoteroQuickLook: Compiling script. Source:"+scriptDir+"/ZoteroQuickLook/coq.scpt"+" Target: "+zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt");
+					Zotero.debug("ZoteroQuickLook: Compiling script. "
+						+ "Source: " + sourceScript + " "
+						+ "Target: " + zoteroScriptsPath.path + "/ZoteroQuickLook/coq.scpt"
+					);
 
 					var userAgent = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULRuntime).OS;
 
-					Zotero.debug("ZoteroQuickLook: Determining OS version: " & userAgent);
+					Zotero.debug("ZoteroQuickLook: Determining OS version: " + userAgent);
 
-					//Before lion
-					if( /Mac OS X 10_6/.test(userAgent) || /Mac OS X 10_5/.test(userAgent) || /Mac OS X 10_4/.test(userAgent)){
-						Zotero.debug("ZoteroQuickLook: Compiling for pre-Lion Mac OS X")
-						proc.run(true, Array("-o",zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt",scriptDir+"/ZoteroQuickLook/coq.scpt"), 3);
-					}
-					//Lion and after
-					else{
-						Zotero.debug("ZoteroQuickLook: Compiling for Lion or later Mac OS X")
-						proc.run(true, Array("-t", "osas", "-c", "ToyS", "-o", zoteroScriptsPath.path+"/ZoteroQuickLook\\coq.scpt",scriptDir+"/ZoteroQuickLook/coq.scpt"), 7);
-					}
+					await Zotero.Utilities.Internal.exec(
+						"/usr/bin/osacompile",
+						[
+							"-t", "osas",
+							"-c", "ToyS",
+							"-o", zoteroScriptsPath.path + "/ZoteroQuickLook/coq.scpt",
+							sourceScript
+						]
+					);
+					
+					await OS.File.remove(sourceScript);
 
 				}
 				else{
@@ -152,6 +113,7 @@ Zotero.ZoteroQuickLook = {
 				Zotero.debug("ZoteroQuickLook: Did not find Zotero word processor integration scripts");
 			}
 		}
+		*/
 	},
 
 	initIntegration: function(){
@@ -188,7 +150,7 @@ Zotero.ZoteroQuickLook = {
 
 					var zoteroItems = [];
 
-					for each(var citationItem in citation.citationItems) {
+					for (let citationItem of citation.citationItems) {
 						zoteroItem = false;
 						if(citationItem.uris) {
 							[zoteroItem, ] = me._session.uriMap.getZoteroItemForURIs(citationItem.uris);
@@ -208,14 +170,10 @@ Zotero.ZoteroQuickLook = {
 	initExecutable: function(scriptLocation) {
 	//Initialize the command that is used.
 
-		this.viewerExecutable = Components.classes["@mozilla.org/file/local;1"]
-                .createInstance(Components.interfaces.nsILocalFile);
-
 		//TODO: The script fails when custom view command is bogus.
 
-
 		if(Zotero.ZoteroQuickLook.customviewcommand!=""){
-			this.viewerExecutable.initWithPath(Zotero.ZoteroQuickLook.customviewcommand);
+			this.viewerExecutable = Zotero.File.pathToFile(Zotero.ZoteroQuickLook.customviewcommand);
 			if(this.viewerExecutable.exists() === false){
 				alert("The custom view command  " + Zotero.ZoteroQuickLook.customviewcommand + " does not exits.");
 			}
@@ -233,29 +191,29 @@ Zotero.ZoteroQuickLook = {
 
 
 			if(Zotero.isLinux){
-				this.viewerExecutable.initWithPath("/usr/bin/gloobus-preview");
+				this.viewerExecutable = Zotero.File.pathToFile("/usr/bin/gloobus-preview");
 				if(this.viewerExecutable.exists() === false){
-					alert("/usr/bin/gloobus-preview is missing. Please install Gloobus or spesify a custom view command instead.");
+					alert("/usr/bin/gloobus-preview is missing. Please install Gloobus or specify a custom view command instead.");
 					return;
 				}
 			}
 
-			if(this.prefs.getBoolPref("usefilenameworkaround")){
+			if (this.getPref("usefilenameworkaround")) {
 
 
 				Zotero.debug("Path to perl script is " + scriptLocation,3);
 
 				//Run the script with perl to avoid permission issues
-				this.viewerExecutable.initWithPath("/usr/bin/perl");
+				this.viewerExecutable = Zotero.File.pathToFile("/usr/bin/perl");
 
 				this.viewerBaseArguments=[scriptLocation];
 			}
 			else{
 				if(Zotero.isLinux){
-					this.viewerExecutable.initWithPath("/usr/bin/gloobus-preview");
+					this.viewerExecutable = Zotero.File.pathToFile("/usr/bin/gloobus-preview");
 				}
 				else{
-					this.viewerExecutable.initWithPath("/usr/bin/qlmanage");
+					this.viewerExecutable = Zotero.File.pathToFile("/usr/bin/qlmanage");
 					this.viewerBaseArguments=['-p'];
 				}
 
@@ -265,19 +223,32 @@ Zotero.ZoteroQuickLook = {
 
 		else if(Zotero.isWin){
 			localappdata = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("LocalAppData", Components.interfaces.nsIFile).path;
-			this.viewerExecutable.initWithPath(localappdata + "\\Programs\\QuickLook\\QuickLook.exe");
+			this.viewerExecutable = Zotero.File.pathToFile(localappdata + "\\Programs\\QuickLook\\QuickLook.exe");
 			if(this.viewerExecutable.exists() === false){
-				alert("QuickLook not found. Please install QuickLook (http://pooi.moe/QuickLook/) or spesify a custom view command instead.");
+				alert("QuickLook not found. Please install QuickLook (http://pooi.moe/QuickLook/) or specify a custom view command instead.");
 			}
 			this.viewerBaseArguments=[''];
 		}
+	},
+
+	getPref: function (pref) {
+		return Zotero.Prefs.get('extensions.zoteroquicklook.' + pref, true);
+	},
+
+	copyURLToTempDir: async function (url) {
+		var tmpDir = OS.Path.join(Zotero.getTempDirectory().path, 'ZoteroQuickLook')
+		await OS.File.makeDir(tmpDir);
+		var filename = url.match(/\/([^\/]+)$/)[1];
+		var path = OS.Path.join(tmpDir, filename);
+		await Zotero.File.download(url, path);
+		return path;
 	},
 
 	cleanFileName: function(filename) {
 		//This is a workaround for firefox bug. See https://www.zotero.org/trac/ticket/957
 		//The workaround can be disabled with a hidden preference.
 		//This feature is not supported on Windows and enabling it would just cause problems.
-		if (this.prefs.getBoolPref("usefilenameworkaround") && ! Zotero.isWin){
+		if (this.getPref("usefilenameworkaround") && ! Zotero.isWin){
 			filename=filename.replace(/[^A-Z0-9.:\/\\_\- ]/gi,'*');
 		}
 		return filename;
