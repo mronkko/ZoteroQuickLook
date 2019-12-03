@@ -193,7 +193,7 @@ Zotero.ZoteroQuickLook = {
 			if(Zotero.isLinux){
 				this.viewerExecutable = Zotero.File.pathToFile("/usr/bin/gloobus-preview");
 				if(this.viewerExecutable.exists() === false){
-					alert("/usr/bin/gloobus-preview is missing. Please install Gloobus or spesify a custom view command instead.");
+					alert("/usr/bin/gloobus-preview is missing. Please install Gloobus or specify a custom view command instead.");
 					return;
 				}
 			}
@@ -225,7 +225,7 @@ Zotero.ZoteroQuickLook = {
 			localappdata = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("LocalAppData", Components.interfaces.nsIFile).path;
 			this.viewerExecutable = Zotero.File.pathToFile(localappdata + "\\Programs\\QuickLook\\QuickLook.exe");
 			if(this.viewerExecutable.exists() === false){
-				alert("QuickLook not found. Please install QuickLook (http://pooi.moe/QuickLook/) or spesify a custom view command instead.");
+				alert("QuickLook not found. Please install QuickLook (http://pooi.moe/QuickLook/) or specify a custom view command instead.");
 			}
 			this.viewerBaseArguments=[''];
 		}
