@@ -245,6 +245,7 @@ Zotero.ZoteroQuickLook = {
 	},
 
 	cleanFileName: function(filename) {
+		//TODO is this still needed?
 		//This is a workaround for firefox bug. See https://www.zotero.org/trac/ticket/957
 		//The workaround can be disabled with a hidden preference.
 		//This feature is not supported on Windows and enabling it would just cause problems.
@@ -293,13 +294,90 @@ Checks the attachment file or writes a content of a note to a file and then push
 
 */
 
-	pushItemToArgs: function(args,item){
+	pushItemToArgs: async function(args,item){
 
 		if(item.isAttachment()){
-			file=item.getFile();
-			if(file!=false){
-				args.push(Zotero.ZoteroQuickLook.cleanFileName(file.path));
+
+			if (item.attachmentLinkMode == Zotero.Attachments.LINK_MODE_LINKED_URL) {
+				return;
 			}
+			
+			let isLinkedFile = !item.isImportedAttachment();
+			let path = item.getFilePath();
+			if (!path) {
+				ZoteroPane_Local.showAttachmentNotFoundDialog(
+					item.id,
+					path,
+					{
+						noLocate: true,
+						notOnServer: true,
+						linkedFile: isLinkedFile
+					}
+				);
+				return;
+			}
+			let fileExists = await OS.File.exists(path);
+
+			// If the file is an evicted iCloud Drive file, launch that to trigger a download.
+			// As of 10.13.6, launching an .icloud file triggers the download and opens the
+			// associated program (e.g., Preview) but won't actually open the file, so we wait a bit
+			// for the original file to exist and then continue with regular file opening below.
+			//
+			// To trigger eviction for testing, use Cirrus from https://eclecticlight.co/downloads/
+			if (!fileExists && Zotero.isMac && isLinkedFile) {
+				// Get the path to the .icloud file
+				let iCloudPath = Zotero.File.getEvictedICloudPath(path);
+				if (await OS.File.exists(iCloudPath)) {
+					// Launching qlmanage should trigger an iCloud download
+					Zotero.debug("ZoterQuickLook: Triggering download of iCloud file");
+					await args.push(Zotero.ZoteroQuickLook.cleanFileName(path));	
+					return;
+				}
+			}
+			
+			if (fileExists) {
+				await args.push(Zotero.ZoteroQuickLook.cleanFileName(path));	
+				return;
+			}
+			
+			if (isLinkedFile || !Zotero.Sync.Storage.Local.getEnabledForLibrary(item.libraryID)) {
+				this.showAttachmentNotFoundDialog(
+					itemID,
+					path,
+					{
+						noLocate: noLocateOnMissing,
+						notOnServer: false,
+						linkedFile: isLinkedFile
+					}
+				);
+				return;
+			}
+			
+			try {
+				await Zotero.Sync.Runner.downloadFile(item);
+			}
+			catch (e) {
+				// TODO: show error somewhere else
+				Zotero.debug(e, 1);
+				ZoteroPane_Local.syncAlert(e);
+				return;
+			}
+			
+			if (!await item.getFilePathAsync()) {
+				ZoteroPane_Local.showAttachmentNotFoundDialog(
+					item.id,
+					path,
+					{
+						noLocate: noLocateOnMissing,
+						notOnServer: true
+					}
+				);
+				return;
+			} else {
+				// Try previeviewing file after download
+				await args.push(Zotero.ZoteroQuickLook.cleanFileName(path));	
+			}
+
 		}
 		else if(item.isNote()){
 
@@ -342,7 +420,7 @@ Checks the attachment file or writes a content of a note to a file and then push
 
 	*/
 
-	openQuickLook: function(items) {
+	openQuickLook: async function(items) {
 
 		Zotero.debug("ZoterQuickLook: opening viewer",3);
 
@@ -362,7 +440,7 @@ Checks the attachment file or writes a content of a note to a file and then push
 					this.cleanOldNotes();
 					notesFound=true;
 				}
-				this.pushItemToArgs(args,items[item]);
+				await this.pushItemToArgs(args,items[item]);
 				filesFound=true;
 			}
 
@@ -385,7 +463,7 @@ Checks the attachment file or writes a content of a note to a file and then push
 
 				for (childID in children){
 					var child = Zotero.Items.get(children[childID]);
-					this.pushItemToArgs(args,child);
+					await this.pushItemToArgs(args,child);
 					filesFound=true;
 				}
 
@@ -393,17 +471,32 @@ Checks the attachment file or writes a content of a note to a file and then push
 		}
 
 
-		///If no files are specified, exit. Custom view commmand does not have base arguments but other view commands have one base argument.
-
+		///If no files are specified, exit.
+		
 		if (! filesFound ) {
 			Zotero.debug("ZoterQuickLook: thinks that no files are selected",3);
 			return false;
 		}
 
+		// Custom view commmand does not have base arguments but other view commands have one base argument.
+		
 		var argsString="";
 
 		for( i in args){
 			argsString=argsString+" "+args[i];
+		}
+
+		var baseArgs = this.viewerBaseArguments.slice();
+		var baseArgsString="";
+		
+		for( i in baseArgs){
+			baseArgsString = baseArgsString+" "+baseArgs[i];
+		}
+		
+		// If no file arguments were added to the base arguments, exit. 
+		if (argsString == baseArgsString) {
+			Zotero.debug("ZoterQuickLook: Only linked URLs are selected",3);
+			return false;
 		}
 
 		//Write to debug what is called
