@@ -14,7 +14,7 @@ Zotero.ZoteroQuickLook = {
 		document.getElementById('zotero-items-tree').addEventListener("keydown",this.onKey,false);
 
 		if (!this.initialized) {
-			Zotero.debug("ZoterQuickLook: starts init",3);
+			Zotero.debug("ZoteroQuickLook: starts init",3);
 
 			//Trim the preference to avoid problems of extra spaces
 			this.customviewcommand = this.getPref('customviewcommand').replace(/^\s+|\s+$/g, '');
@@ -32,8 +32,8 @@ Zotero.ZoteroQuickLook = {
 				}
 			}
 
-			// Get the path of the embedded Perl script (Mac/Linux) and word processor plugins scripts (Mac)
-			if (!Zotero.isWin && this.customviewcommand == "") {
+			// Get the path of the embedded Perl script (Mac/Linux) or QuickLook bridge executable (Win)
+			if (this.customviewcommand == "") {
 				await new Promise(function (resolve) {
 					var MY_ID = "zoteroquicklook@gmail.com";
 					Components.utils.import("resource://gre/modules/AddonManager.jsm");
@@ -43,8 +43,7 @@ Zotero.ZoteroQuickLook = {
 						resolve();
 					}.bind(this));
 				}.bind(this));
-			}
-			else {
+			} else {
 				this.initExecutable();
 			}
 
@@ -62,8 +61,15 @@ Zotero.ZoteroQuickLook = {
 	 * Initializes external scripts
 	 */
 	initScripts: async function (scriptURL) {
-		let path = await this.copyURLToTempDir(scriptURL + "/zoteroquicklook.pl");
-		Zotero.ZoteroQuickLook.initExecutable(path);
+		if (!Zotero.isWin) {
+			let path = await this.copyURLToTempDir(scriptURL + "/zoteroquicklook.pl");
+			Zotero.debug("ZoteroQuickLook: Copying zoteroquicklook.pl file to: " + path);
+			Zotero.ZoteroQuickLook.initExecutable(path);
+		} else {
+			let path = await this.copyURLToTempDir(scriptURL + "/Bridge.exe");
+			Zotero.debug("ZoteroQuickLook: Copying Bridge.exe file to: " + path);
+			Zotero.ZoteroQuickLook.initExecutable(path);
+		}
 		
 		/*
 		// Check if the word processor integration for Zotero is installed and install the quicklook word processor script
@@ -116,6 +122,7 @@ Zotero.ZoteroQuickLook = {
 		*/
 	},
 
+	/*
 	initIntegration: function(){
 
 		Zotero.Integration.Interface.prototype.quickLook = function() {
@@ -166,8 +173,11 @@ Zotero.ZoteroQuickLook = {
 			}
 		}
 	},
+	*/
 
 	initExecutable: function(scriptLocation) {
+		Zotero.debug("ZoteroQuickLook: Script location is " + scriptLocation, 3);
+		
 	//Initialize the command that is used.
 
 		//TODO: The script fails when custom view command is bogus.
@@ -221,13 +231,28 @@ Zotero.ZoteroQuickLook = {
 
 		}
 
-		else if(Zotero.isWin){
+		else if(Zotero.isWin){			
+			/* TODO: Checking for existence of Windows Store Apps isn't working
+			// Check if QuickLook is installed. 
 			localappdata = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("LocalAppData", Components.interfaces.nsIFile).path;
-			this.viewerExecutable = Zotero.File.pathToFile(localappdata + "\\Programs\\QuickLook\\QuickLook.exe");
-			if(this.viewerExecutable.exists() === false){
-				alert("QuickLook not found. Please install QuickLook (http://pooi.moe/QuickLook/) or specify a custom view command instead.");
+			qlMsiLocation = Zotero.File.pathToFile(localappdata + "\\Programs\\QuickLook\\QuickLook.exe");
+			winApps = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile).initWithPath("C:\\Program Files\\WindowsApps\\").directoryEntries;
+			winAppsArray = [];
+			while(winApps.hasMoreElements()) {
+				var entry = winApps.getNext();
+				entry.QueryInterface(Components.interfaces.nsIFile);
+				winAppsArray.push(entry);
 			}
-			this.viewerBaseArguments=[''];
+			qlPublisher = /PaddyXu\.QuickLook/g ;
+			qlWinStoreInstalled = winAppsArray.some(e => qlPublisher.test(e));
+			if(qlMsiLocation.exists() === false && qlWinStoreInstalled === false){
+				alert("QuickLook not found. Please install QuickLook (http://pooi.moe/QuickLook/) or specify a custom view command instead.");
+				return;
+			}
+			*/
+			
+			this.viewerExecutable = Zotero.File.pathToFile(scriptLocation);
+			this.viewerBaseArguments=[''];		
 		}
 	},
 
@@ -256,7 +281,7 @@ Zotero.ZoteroQuickLook = {
 	},
 
 	closeQuickLook: function(){
-		Zotero.debug("ZoterQuickLook: is killing quicklook viewer.");
+		Zotero.debug("ZoteroQuickLook: is killing quicklook viewer.");
 		Zotero.ZoteroQuickLook.proc.kill();
 		Zotero.ZoteroQuickLook.proc=null;
 	},
@@ -329,7 +354,7 @@ Checks the attachment file or writes a content of a note to a file and then push
 				let iCloudPath = Zotero.File.getEvictedICloudPath(path);
 				if (await OS.File.exists(iCloudPath)) {
 					// Launching qlmanage should trigger an iCloud download
-					Zotero.debug("ZoterQuickLook: Triggering download of iCloud file");
+					Zotero.debug("ZoteroQuickLook: Triggering download of iCloud file");
 					await args.push(Zotero.ZoteroQuickLook.cleanFileName(path));	
 					return;
 				}
@@ -422,7 +447,7 @@ Checks the attachment file or writes a content of a note to a file and then push
 
 	openQuickLook: async function(items) {
 
-		Zotero.debug("ZoterQuickLook: opening viewer",3);
+		Zotero.debug("ZoteroQuickLook: opening viewer",3);
 
 		var args=this.viewerBaseArguments.slice();
 
@@ -474,7 +499,7 @@ Checks the attachment file or writes a content of a note to a file and then push
 		///If no files are specified, exit.
 		
 		if (! filesFound ) {
-			Zotero.debug("ZoterQuickLook: thinks that no files are selected",3);
+			Zotero.debug("ZoteroQuickLook: thinks that no files are selected",3);
 			return false;
 		}
 
@@ -495,20 +520,17 @@ Checks the attachment file or writes a content of a note to a file and then push
 		
 		// If no file arguments were added to the base arguments, exit. 
 		if (argsString == baseArgsString) {
-			Zotero.debug("ZoterQuickLook: Only linked URLs are selected",3);
+			Zotero.debug("ZoteroQuickLook: Only linked URLs are selected",3);
 			return false;
 		}
 
 		//Write to debug what is called
-		Zotero.debug("ZoterQuickLook: calling a shell command: " +this.viewerExecutable.path +argsString,3);
-
+		Zotero.debug("ZoteroQuickLook: calling a shell command: " +this.viewerExecutable.path +argsString,3);
+		
 		Zotero.ZoteroQuickLook.proc = Components.classes["@mozilla.org/process/util;1"].
 		createInstance(Components.interfaces.nsIProcess);
-
 		Zotero.ZoteroQuickLook.proc.init(Zotero.ZoteroQuickLook.viewerExecutable);
-
 		Zotero.ZoteroQuickLook.proc.runw(false, args, args.length);
-
 		return true;
 	},
 
@@ -546,12 +568,12 @@ Checks the attachment file or writes a content of a note to a file and then push
 		}
 		// 38 is arrow up and 40 is arrow down. If quick look is active, we will close it and open it again with the new selection.
 		else if((event.keyCode==38 || event.keyCode==40)&& !(event.ctrlKey || event.altKey || event.metaKey) && (Zotero.ZoteroQuickLook.isActive() || Zotero.ZoteroQuickLook.isBrowseMode)) {
-			Zotero.debug("ZoterQuickLook: is browsing");
+			Zotero.debug("ZoteroQuickLook: is browsing");
 			if (! Zotero.ZoteroQuickLook.isBrowseMode) Zotero.ZoteroQuickLook.closeQuickLook();
 			success=Zotero.ZoteroQuickLook.openQuickLook(items);
 			// If the items were not found, the viewer stays closed. However, if we are browsing through a list of items, we want to reopen the viewer when we hit the next item that has an attachment.
 			Zotero.ZoteroQuickLook.isBrowseMode = ! success;
-			Zotero.debug("ZoterQuickLook: has browse mode set to " + Zotero.ZoteroQuickLook.isBrowseMode,3);
+			Zotero.debug("ZoteroQuickLook: has browse mode set to " + Zotero.ZoteroQuickLook.isBrowseMode,3);
 
 		}
 		return;
