@@ -10,7 +10,7 @@ namespace Bridge
     {
         private static void Main(string[] args)
         {
-            if (args.Length != 1)
+            if (args.Length == 0)
             {
                 MessageBox.Show("Usage: Bridge.exe \"<path of a file/folder>\"");
                 return;
@@ -42,7 +42,7 @@ namespace Bridge
             }
             catch (Exception e)
             {
-                MessageBox.Show("QuickLook not found. Please install QuickLook (http://pooi.moe/QuickLook/) or specify a custom view command instead.");
+                MessageBox.Show("QuickLook cannot be reached. Please run/install QuickLook (http://pooi.moe/QuickLook/) or specify a custom view command instead.");
             }
         }
     }

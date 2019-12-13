@@ -453,10 +453,16 @@ Checks the attachment file or writes a content of a note to a file and then push
 
 		// A boolean indicating if we have notes this far.
 		var notesFound=false;
-
 		var filesFound=false;
 
-		//Combine all filenames into an array
+		if (!Zotero.isWin || this.customviewcommand !== "") {
+
+		} else {
+			
+		}
+
+		// Combine all filenames into an array
+		// Note that for default Windows behavior, only the first time will be displayed
 
 		for (item in items){
 
