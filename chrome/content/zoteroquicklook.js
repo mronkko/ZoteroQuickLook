@@ -10,6 +10,10 @@ Zotero.ZoteroQuickLook = {
     viewerBaseArguments:null,
 
 	init: async function () {
+		if (document.getElementById('zotero-itemmenu') == null) {
+			setTimeout(() => { this.init(); }, 1000);
+			return;
+		}
 		document.getElementById('zotero-itemmenu').addEventListener("popupshowing", this.showQuickLookMenu, false);
 		document.getElementById('zotero-items-tree').addEventListener("keydown",this.onKey,false);
 
