@@ -5,7 +5,7 @@ This open source project implements QuickLook in Zotero.
 
 # Installing
 
-To install ZoteroQuickLook, download the latest version of `zoteroquicklook.xpi` from the Releases section of this GitHub repo. In **Zotero** (not in Firefox), open Tools -> Add-ons. Then drag the `zoteroquicklook.xpi` file onto the Zotero Add-ons window.
+To install ZoteroQuickLook, download the latest version of `zoteroquicklook.zoteroplugin` from the Releases section of this GitHub repo. In **Zotero** (not in Firefox), open Tools -> Add-ons. Then drag the `zoteroquicklook.zoteroplugin` file onto the Zotero Add-ons window.
 
 ## Installing on Mac
 On Mac, ZoteroQuickLook uses macOS's native QuickLook functionality. No additional steps are needed.
