@@ -205,11 +205,14 @@ Zotero.ZoteroQuickLook = {
 
 
 			if(Zotero.isLinux){
-				this.viewerExecutable = Zotero.File.pathToFile("/usr/bin/gloobus-preview");
-				if(this.viewerExecutable.exists() === false){
-					alert("/usr/bin/gloobus-preview is missing. Please install Gloobus or specify a custom view command instead.");
+				const linux_bins = ["/usr/bin/sushi", "/usr/bin/gloobus-preview"];
+				const linux_existing_bins = linux_bins.filter(bin => Zotero.File.pathToFile(bin).exists());
+				if (linux_existing_bins.length == 0) {
+					alert("All supported software are mssing [" + linux_bins.toString() + "]. Please install either one or specify a custom view command instead.");
 					return;
 				}
+				// take the first existing bin as higher priority
+				this.viewerExecutable = Zotero.File.pathToFile(linux_existing_bins[0]);
 			}
 
 			if (this.getPref("usefilenameworkaround")) {
