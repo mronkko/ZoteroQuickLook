@@ -3,6 +3,10 @@ ZoteroQuickLook
 
 This open source project implements QuickLook in Zotero.
 
+# Status
+
+This plugin is not currently being actively maintained. It may not work with current or beta versions of Zotero. If someone is interested in taking over maintenance of the plugin, please contact @bwiernik. 
+
 # Installing
 
 To install ZoteroQuickLook, download the latest version of `zoteroquicklook.zoteroplugin` from the Releases section of this GitHub repo. In **Zotero** (not in Firefox), open Tools -> Add-ons. Then drag the `zoteroquicklook.zoteroplugin` file onto the Zotero Add-ons window.
