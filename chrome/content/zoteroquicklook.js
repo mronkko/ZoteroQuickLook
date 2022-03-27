@@ -453,7 +453,9 @@ Checks the attachment file or writes a content of a note to a file and then push
 	*/
 
 	openQuickLook: async function(items) {
-
+		this.viewerBaseArguments=['-p'];
+        this.viewerExecutable = Zotero.File.pathToFile("/usr/bin/qlmanage");
+		
 		Zotero.debug("ZoteroQuickLook: opening viewer",3);
 
 		var args=this.viewerBaseArguments.slice();
