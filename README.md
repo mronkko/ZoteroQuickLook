@@ -11,12 +11,23 @@ This plugin is not currently being actively maintained. It may not work with cur
 
 To install ZoteroQuickLook, download the latest version of `zoteroquicklook.zoteroplugin` from the Releases section of this GitHub repo. In **Zotero** (not in Firefox), open Tools -> Add-ons. Then drag the `zoteroquicklook.zoteroplugin` file onto the Zotero Add-ons window.
 
+Note for __Zotero 6.0__: Replace `zoteroquicklook.zoteroplugin` above, download `zoteroquicklook.xpi` from te Release section then follow the instructions above.
+
 ## Installing on Mac
-On Mac, ZoteroQuickLook uses macOS's native QuickLook functionality. No additional steps are needed.
+On Mac, ZoteroQuickLook uses macOS's native QuickLook functionality. Check path `/usr/bin/qlmanage` and make sure it exists. No additional steps are needed.
 
 ## Installing on Linux
 
-On Linux, you must install [Gloobus-Preview](https://launchpad.net/gloobus-preview), a QuickLook-like preview software. On Ubuntu you can do this by running the following commands in terminal:
+On Linux, considering that __Gloobus-Preview__ is unmaintained now, it is recommanded to install __Gnome Sushi__ as the QuickLook preview software first. Run the command below to install it in terminal:
+
+```
+sudo apt install gnome-sushi # Debian User
+run sudo dnf install sushi # Fedora User
+```
+
+After the installation is complete, check path `/usr/bin/sushi` and make sure it exists.
+
+If you want to install [Gloobus-Preview](https://launchpad.net/gloobus-preview), a QuickLook-like preview software. On Ubuntu you can do this by running the following commands in terminal:
 
 ```
 sudo add-apt-repository ppa:gloobus-dev/gloobus-preview
@@ -24,6 +35,8 @@ sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get install gloobus-preview
 ```
+After the installation is complete, check path `/usr/bin/gloobus-preview` and make sure it exists.
+
 
 For other distributions and versions the installation might be different.
 

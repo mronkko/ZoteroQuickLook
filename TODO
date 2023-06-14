@@ -1,0 +1,11 @@
+Bugs:
+- Missing special character escapes, file names with special sysmbos like $m^{2}$.pdf cant preview
+-
+
+Low-priority bugs:
+- Unable to preview with in 10 seconds of Zotero just starting
+- Sushi sometimes jump to Nautilus file preview window when Zotero select nothing and type to preview
+
+Ideas (to be validated):
+- 
+-

@@ -5,12 +5,12 @@
       <rdf:Seq>
         <rdf:li>
           <rdf:Description>
-            <em:version>1.4.2</em:version>
+            <em:version>1.4.3</em:version>
             <em:targetApplication>
               <rdf:Description>
                 <em:id>zotero@chnm.gmu.edu</em:id>
                 <em:minVersion>4.0</em:minVersion>
-                <em:maxVersion>5.*</em:maxVersion>
+                <em:maxVersion>6.*</em:maxVersion>
                 <em:updateLink>https://github.com/mronkko/ZoteroQuickLook/releases/download/1.4.2/zoteroquicklook.zoteroplugin</em:updateLink>
               </rdf:Description>
             </em:targetApplication>
@@ -18,7 +18,7 @@
               <rdf:Description>
                 <em:id>juris-m@juris-m.github.io</em:id>
                 <em:minVersion>4.0</em:minVersion>
-                <em:maxVersion>5.*</em:maxVersion>
+                <em:maxVersion>6.*</em:maxVersion>
                 <em:updateLink>https://github.com/mronkko/ZoteroQuickLook/releases/download/1.4.2/zoteroquicklook.zoteroplugin</em:updateLink>
               </rdf:Description>
             </em:targetApplication>
