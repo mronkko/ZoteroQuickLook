@@ -11,7 +11,7 @@ This plugin is not currently being actively maintained. It may not work with cur
 
 To install ZoteroQuickLook, download the latest version of `zoteroquicklook.zoteroplugin` from the Releases section of this GitHub repo. In **Zotero** (not in Firefox), open Tools -> Add-ons. Then drag the `zoteroquicklook.zoteroplugin` file onto the Zotero Add-ons window.
 
-Note for __Zotero 6.0__: Replace `zoteroquicklook.zoteroplugin` above, download `zoteroquicklook.xpi` from te Release section then follow the instructions above.
+Note for __Zotero 6.0__: Replace `zoteroquicklook.zoteroplugin` above, download `zoteroquicklook.xpi` from the Release section then follow the instructions above.
 
 ## Installing on Mac
 On Mac, ZoteroQuickLook uses macOS's native QuickLook functionality. Check path `/usr/bin/qlmanage` and make sure it exists. No additional steps are needed.
