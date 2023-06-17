@@ -1,2 +1,4 @@
 builds
 github.token
+*.xpi
+*.zoteroplugin
